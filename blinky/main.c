@@ -11,7 +11,7 @@
 int main(void)
 {
 
-    uint8_t serial_number[] = {6, 6, 4, 2};
+    uint8_t serial_number[] = {6, 6, 0, 0};
     /* Configure board. */
     gpio_module_leds_init();
     /* Toggle LEDs. */
