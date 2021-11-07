@@ -1,7 +1,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "nrf_delay.h"
-#include "boards.h"
+#include "gpio_module.h"
 
 #define MAX_NUMBER 6
 
@@ -11,10 +11,9 @@
 int main(void)
 {
 
-    uint8_t serial_number[] = {6, 6, 0, 0};
+    uint8_t serial_number[] = {6, 6, 4, 2};
     /* Configure board. */
-    bsp_board_init(BSP_INIT_LEDS);
-
+    gpio_module_leds_init();
     /* Toggle LEDs. */
     while (true)
     {
@@ -24,11 +23,11 @@ int main(void)
             {
                 if (serial_number[led_idx] > i)
                 {
-                    bsp_board_led_on(led_idx);
+                    gpio_module_led_on(led_idx);
                 }
             }
             nrf_delay_ms(500);
-            bsp_board_leds_off();
+            gpio_module_leds_off();
             nrf_delay_ms(500);
         }
         nrf_delay_ms(2000);
