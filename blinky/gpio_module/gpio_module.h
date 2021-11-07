@@ -15,5 +15,9 @@ void gpio_module_leds_off(void);
 
 void gpio_module_leds_init(void);
 
+bool gpio_module_button_state_get(uint32_t button_idx);
+
+void gpio_module_buttons_init(void);
+
 
 #endif
