@@ -42,4 +42,6 @@ void gpio_module_leds_init(void)
     {
         nrf_gpio_cfg_output(m_led_list[led_idx]);
     }
+
+    gpio_module_leds_off();
 }
