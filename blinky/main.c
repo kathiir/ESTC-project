@@ -50,9 +50,6 @@ int main(void)
     /* Toggle LEDs. */
     while (true)
     {
-        // LOG_BACKEND_USB_PROCESS();
-        // NRF_LOG_PROCESS();
-
         NRF_LOG_INFO("Starting loop");
 
         LOG_BACKEND_USB_PROCESS();
@@ -60,9 +57,6 @@ int main(void)
 
         for (int led_idx = 0; led_idx < LEDS_NUMBER; led_idx++)
         {
-            // LOG_BACKEND_USB_PROCESS();
-            // NRF_LOG_PROCESS();
-
             NRF_LOG_INFO("Iterating over LED %d", led_idx);
 
             LOG_BACKEND_USB_PROCESS();
@@ -70,9 +64,6 @@ int main(void)
 
             for (int i = 0; i < serial_number[led_idx]; i++)
             {
-                // LOG_BACKEND_USB_PROCESS();
-                // NRF_LOG_PROCESS();
-
                 NRF_LOG_INFO("Iteration %d", i);
 
                 LOG_BACKEND_USB_PROCESS();
@@ -90,9 +81,7 @@ int main(void)
 
                     /* wait */
                 }
-                // LOG_BACKEND_USB_PROCESS();
-                // NRF_LOG_PROCESS();
-
+                
                 gpio_module_led_on(led_idx);
 
                 nrf_delay_ms(300);
