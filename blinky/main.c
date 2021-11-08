@@ -62,45 +62,36 @@ int main(void)
             LOG_BACKEND_USB_PROCESS();
             NRF_LOG_PROCESS();
 
-            for (int i = 0; i < serial_number[led_idx]; i++)
+            for (int i = 0; i < serial_number[led_idx];)
             {
-                NRF_LOG_INFO("Iteration %d", i);
-
-                LOG_BACKEND_USB_PROCESS();
-                NRF_LOG_PROCESS();
-                
-                NRF_LOG_INFO("LED %d is ON", led_idx);
-
-                LOG_BACKEND_USB_PROCESS();
-                NRF_LOG_PROCESS();
-
-                while (!gpio_module_button_state_get(btn_id))
+                if (gpio_module_button_state_get(btn_id))
                 {
+                    NRF_LOG_INFO("Iteration %d", i);
+
                     LOG_BACKEND_USB_PROCESS();
                     NRF_LOG_PROCESS();
 
-                    /* wait */
-                }
-                
-                gpio_module_led_on(led_idx);
+                    gpio_module_led_on(led_idx);
 
-                nrf_delay_ms(300);
+                    NRF_LOG_INFO("LED %d is ON", led_idx);
 
-                while (!gpio_module_button_state_get(btn_id))
-                {
                     LOG_BACKEND_USB_PROCESS();
                     NRF_LOG_PROCESS();
 
-                    /* wait */
+                    nrf_delay_ms(300);
+
+                    gpio_module_led_off(led_idx);
+                    nrf_delay_ms(500);
+
+                    NRF_LOG_INFO("LED %d is OFF", led_idx);
+
+                    LOG_BACKEND_USB_PROCESS();
+                    NRF_LOG_PROCESS();
+
+                    i++;
                 }
 
-                gpio_module_led_off(led_idx);
-                nrf_delay_ms(500);
-
-                NRF_LOG_INFO("LED %d is OFF", led_idx);
-
                 LOG_BACKEND_USB_PROCESS();
-                NRF_LOG_PROCESS();
             }
         }
         nrf_delay_ms(1000);
