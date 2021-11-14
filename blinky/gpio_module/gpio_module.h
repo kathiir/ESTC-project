@@ -20,4 +20,4 @@ bool gpio_module_button_state_get(uint32_t button_idx);
 void gpio_module_buttons_init(void);
 
 
-#endif
+#endif /* GPIO_MODULE_H */
