@@ -31,70 +31,60 @@ int main(void)
     logs_init();
 
     NRF_LOG_INFO("Logging initialized");
+    NRF_LOG_PROCESS();
+    LOG_BACKEND_USB_PROCESS();
 
     uint8_t serial_number[] = {6, 6, 0, 0};
     uint8_t btn_id = 0;
 
     /* Configure board. */
     gpio_module_leds_init();
+
     NRF_LOG_INFO("LEDS initialized");
+    NRF_LOG_PROCESS();
+    LOG_BACKEND_USB_PROCESS();
 
     gpio_module_buttons_init();
+
     NRF_LOG_INFO("Buttons initialized");
-
-    NRF_LOG_INFO("Starting program");
-
-    LOG_BACKEND_USB_PROCESS();
     NRF_LOG_PROCESS();
+    LOG_BACKEND_USB_PROCESS();
+
+    uint8_t blink_idx = 0;
+    uint8_t led_idx = 0;
 
     /* Toggle LEDs. */
     while (true)
     {
-        NRF_LOG_INFO("Starting loop");
+        LOG_BACKEND_USB_PROCESS();
+
+        if (gpio_module_button_state_get(btn_id))
+        {
+            if (blink_idx >= serial_number[led_idx])
+            {
+                led_idx = (led_idx + 1) % LEDS_NUMBER;
+                blink_idx = 0;
+                /* 
+                * Possible to do with while but it might cause infinite  
+                * loop and button state would never be read 
+                */
+                continue;
+            }
+
+            NRF_LOG_INFO("LED %d, Iteration %d", led_idx, blink_idx);
+
+            NRF_LOG_PROCESS();
+            LOG_BACKEND_USB_PROCESS();
+
+            gpio_module_led_on(led_idx);
+            nrf_delay_ms(300);
+
+            gpio_module_led_off(led_idx);
+            nrf_delay_ms(300);
+            blink_idx++;
+        }
 
         LOG_BACKEND_USB_PROCESS();
-        NRF_LOG_PROCESS();
-
-        for (int led_idx = 0; led_idx < LEDS_NUMBER; led_idx++)
-        {
-            NRF_LOG_INFO("Iterating over LED %d", led_idx);
-
-            LOG_BACKEND_USB_PROCESS();
-            NRF_LOG_PROCESS();
-
-            for (int i = 0; i < serial_number[led_idx];)
-            {
-                if (gpio_module_button_state_get(btn_id))
-                {
-                    NRF_LOG_INFO("Iteration %d", i);
-
-                    LOG_BACKEND_USB_PROCESS();
-                    NRF_LOG_PROCESS();
-
-                    gpio_module_led_on(led_idx);
-
-                    NRF_LOG_INFO("LED %d is ON", led_idx);
-
-                    LOG_BACKEND_USB_PROCESS();
-                    NRF_LOG_PROCESS();
-
-                    nrf_delay_ms(300);
-
-                    gpio_module_led_off(led_idx);
-                    nrf_delay_ms(500);
-
-                    NRF_LOG_INFO("LED %d is OFF", led_idx);
-
-                    LOG_BACKEND_USB_PROCESS();
-                    NRF_LOG_PROCESS();
-
-                    i++;
-                }
-
-                LOG_BACKEND_USB_PROCESS();
-            }
-        }
-        nrf_delay_ms(1000);
     }
 }
 
