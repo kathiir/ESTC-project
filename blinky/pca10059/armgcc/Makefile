@@ -27,6 +27,7 @@ SRC_FILES += \
   $(SDK_ROOT)/modules/nrfx/soc/nrfx_atomic.c \
   $(SDK_ROOT)/modules/nrfx/mdk/system_nrf52840.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_usbd.c \
+  $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_gpiote.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_frontend.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_str_formatter.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_default_backends.c \
@@ -47,6 +48,7 @@ SRC_FILES += \
   $(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_power.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_power.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_systick.c \
+  $(SDK_ROOT)/components/libraries/timer/drv_rtc.c \
   $(PROJ_DIR)/main.c \
   $(PROJ_DIR)/gpio_module/gpio_module.c \
   $(PROJ_DIR)/gpio_module/gpio_pwm.c \
