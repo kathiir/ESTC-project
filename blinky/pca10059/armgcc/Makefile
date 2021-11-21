@@ -47,11 +47,13 @@ SRC_FILES += \
   $(SDK_ROOT)/components/libraries/atomic_fifo/nrf_atfifo.c \
   $(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_power.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_power.c \
+  $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_pwm.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_systick.c \
   $(SDK_ROOT)/components/libraries/timer/drv_rtc.c \
   $(PROJ_DIR)/main.c \
   $(PROJ_DIR)/gpio_module/gpio_module.c \
   $(PROJ_DIR)/gpio_module/gpio_pwm.c \
+  $(PROJ_DIR)/color_module/color_module.c \
 
 
 
@@ -61,6 +63,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/modules/nrfx/mdk \
   $(PROJ_DIR) \
   $(PROJ_DIR)/gpio_module \
+  $(PROJ_DIR)/color_module \
   $(SDK_ROOT)/components/softdevice/mbr/headers \
   $(SDK_ROOT)/components/libraries/strerror \
   $(SDK_ROOT)/components/toolchain/cmsis/include \
