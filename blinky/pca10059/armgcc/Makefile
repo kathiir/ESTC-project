@@ -28,6 +28,7 @@ SRC_FILES += \
   $(SDK_ROOT)/modules/nrfx/mdk/system_nrf52840.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_usbd.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_gpiote.c \
+  $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_nvmc.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_frontend.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_str_formatter.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_default_backends.c \
@@ -54,6 +55,7 @@ SRC_FILES += \
   $(PROJ_DIR)/gpio_module/gpio_module.c \
   $(PROJ_DIR)/gpio_module/gpio_pwm.c \
   $(PROJ_DIR)/color_module/color_module.c \
+  $(PROJ_DIR)/nvmc_module/nvmc_module.c \
 
 
 
@@ -64,6 +66,7 @@ INC_FOLDERS += \
   $(PROJ_DIR) \
   $(PROJ_DIR)/gpio_module \
   $(PROJ_DIR)/color_module \
+  $(PROJ_DIR)/nvmc_module \
   $(SDK_ROOT)/components/softdevice/mbr/headers \
   $(SDK_ROOT)/components/libraries/strerror \
   $(SDK_ROOT)/components/toolchain/cmsis/include \
@@ -94,6 +97,8 @@ INC_FOLDERS += \
   $(SDK_ROOT)/external/utf_converter \
   $(SDK_ROOT)/components/libraries/timer \
   $(SDK_ROOT)/components/libraries/sortlist \
+  $(SDK_ROOT)/components/libraries/bootloader \
+  $(SDK_ROOT)/components/libraries/bootloader/dfu \
 
 
 

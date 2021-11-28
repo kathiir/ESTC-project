@@ -17,6 +17,8 @@
 #include "gpio_module.h"
 #include "color_module.h"
 
+#include "nvmc_module.h"
+
 #include "app_timer.h"
 
 
@@ -96,6 +98,8 @@ APP_TIMER_DEF(long_press_timeout_timer_id);
 APP_TIMER_DEF(button_block_timeout_timer_id);
 
 
+static void save_state();
+
 static void button_evt_handler(nrfx_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
 {
     if (button_blocked)
@@ -133,6 +137,10 @@ static void button_evt_handler(nrfx_gpiote_pin_t pin, nrf_gpiote_polarity_t acti
         {
             mode = (mode + 1) % NUMBER_OF_MODES;
             NRF_LOG_INFO("Mode changed: %d", mode);
+
+            if (mode == 0) {
+                save_state();
+            }
         }
         
     }
@@ -142,7 +150,6 @@ static void double_click_timer_timeout_handler(void *p_context)
 {
     button_press_count = 0;
 }
-
 
 static void long_press_timer_timeout_handler(void *p_context)
 {
@@ -250,6 +257,39 @@ static void pwm_rgb_evt_handler(nrfx_pwm_evt_type_t event_type)
 }
 
 
+static void save_state() 
+{
+    uint32_t to_write = 0;
+    
+    uint8_t hue = hsv_tmp_values.hue / 100;
+    uint8_t saturation = hsv_tmp_values.saturation / 100;
+    uint8_t value = hsv_tmp_values.value / 100;
+
+    to_write = ((0xFF & hue) << 24)
+             + ((0xFF & saturation) << 16)  
+             + ((0xFF & value) << 8)
+             + 0xDE;
+
+    nvmc_write(to_write);
+
+    NRF_LOG_INFO("State saved: %d, %d, %d", hue, saturation, value);
+}
+
+static void restore_state() 
+{
+    uint32_t to_read = nvmc_read();
+
+    if (0xDE == (0xFF & to_read))
+    {
+        hsv_tmp_values.hue        =  (0xFF & (to_read >> 24)) * 100;
+        hsv_tmp_values.saturation =  (0xFF & (to_read >> 16)) * 100;
+        hsv_tmp_values.value      =  (0xFF & (to_read >> 8)) * 100;
+    }
+
+    NRF_LOG_INFO("State restored: %d, %d, %d", hsv_tmp_values.hue, hsv_tmp_values.saturation, hsv_tmp_values.value);
+}
+
+
 void logs_init(void)
 {
     ret_code_t ret = NRF_LOG_INIT(NULL);
@@ -280,8 +320,8 @@ void gpiote_button_init(void)
     nrfx_gpiote_in_event_enable(BUTTON_1, true);
 }
 
-
-void pwm_rgb_init(void){
+void pwm_rgb_init(void)
+{
 
     nrfx_pwm_config_t config = 
     {
@@ -321,7 +361,8 @@ void pwm_rgb_init(void){
     nrfx_pwm_simple_playback(&m_pwm_rgb, &m_rgb_seq, NUMBER_OF_PLAYBACKS, NRFX_PWM_FLAG_LOOP);
 }
 
-void pwm_control_init(void){
+void pwm_control_init(void)
+{
     nrfx_pwm_config_t config = 
     {
         .output_pins = 
@@ -349,6 +390,11 @@ void pwm_control_init(void){
     nrfx_pwm_simple_playback(&m_pwm_control, &m_control_seq, NUMBER_OF_PLAYBACKS, NRFX_PWM_FLAG_LOOP);
 }
 
+void nvmc_init(void)
+{
+    restore_state();
+}
+
 /**
  * @brief Function for application main entry.
  */
@@ -365,6 +411,8 @@ int main(void)
     timer_init();
 
     gpiote_button_init();
+
+    nvmc_init();
 
     pwm_rgb_init();
     pwm_control_init();
