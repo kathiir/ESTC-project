@@ -53,6 +53,7 @@ SRC_FILES += \
   $(SDK_ROOT)/components/libraries/timer/drv_rtc.c \
   $(PROJ_DIR)/main.c \
   $(PROJ_DIR)/gpio_module/gpio_module.c \
+  $(PROJ_DIR)/gpio_module/gpio_button.c \
   $(PROJ_DIR)/gpio_module/gpio_pwm.c \
   $(PROJ_DIR)/color_module/color_module.c \
   $(PROJ_DIR)/nvmc_module/nvmc_module.c \
