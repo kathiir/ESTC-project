@@ -16,6 +16,9 @@
 #include "gpio_module.h"
 #include "color_module.h"
 #include "gpio_pwm.h"
+#include "usb_module.h"
+#include "usb_cli_commands.h"
+#include "gpio_button.h"
 
 #include "nvmc_module.h"
 
@@ -53,6 +56,9 @@ int main(void)
     nvmc_init(&hsv_tmp_color);
 
     pwm_init(&hsv_tmp_color, &mode, &change_value);
+
+    usb_init();
+    usb_cli_init_commands();
 
 
     while (true)

@@ -57,6 +57,10 @@ SRC_FILES += \
   $(PROJ_DIR)/gpio_module/gpio_pwm.c \
   $(PROJ_DIR)/color_module/color_module.c \
   $(PROJ_DIR)/nvmc_module/nvmc_module.c \
+  $(PROJ_DIR)/usb_module/usb_cli.c \
+  $(PROJ_DIR)/usb_module/usb_module.c \
+  $(PROJ_DIR)/usb_module/usb_cli_commands.c \
+
 
 
 
@@ -68,6 +72,7 @@ INC_FOLDERS += \
   $(PROJ_DIR)/gpio_module \
   $(PROJ_DIR)/color_module \
   $(PROJ_DIR)/nvmc_module \
+  $(PROJ_DIR)/usb_module \
   $(SDK_ROOT)/components/softdevice/mbr/headers \
   $(SDK_ROOT)/components/libraries/strerror \
   $(SDK_ROOT)/components/toolchain/cmsis/include \
@@ -209,6 +214,6 @@ flash: default
 	    --softdevice $(SDK_ROOT)/components/softdevice/s113/hex/s113_nrf52_7.2.0_softdevice.hex \
 	    --sd-id 0x0102 \
 	      >/dev/null
-	nrfutil -v -v -v -v dfu usb-serial \
+	nrfutil dfu usb-serial \
 	    --package $(OUTPUT_DIRECTORY)/app.zip \
 	    --port $(DFU_PORT)

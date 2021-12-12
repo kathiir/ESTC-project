@@ -208,6 +208,42 @@ static void pwm_control_init(void)
     nrfx_pwm_simple_playback(&m_pwm_control, &m_control_seq, NUMBER_OF_PLAYBACKS, NRFX_PWM_FLAG_LOOP);
 }
 
+void pwm_set_hsv_color(uint8_t hue, uint8_t saturation, uint8_t value)
+{
+    m_hsv_tmp_values->hue        =  hue * 100;
+    m_hsv_tmp_values->saturation =  saturation * 100;
+    m_hsv_tmp_values->value      =  value * 100;
+
+    color_hsv_t hsv = { hue, saturation, value };
+    color_rgb_t rgb;
+
+    color_hsv_to_rgb(&hsv, &rgb);
+
+    m_rgb_seq_values.channel_0 = rgb.red;
+    m_rgb_seq_values.channel_1 = rgb.green;
+    m_rgb_seq_values.channel_2 = rgb.blue;
+    m_rgb_seq_values.channel_3 = 0;
+
+}
+
+void pwm_set_rgb_color(uint8_t red, uint8_t green, uint8_t blue)
+{
+    color_hsv_t hsv;
+    color_rgb_t rgb = { red, green, blue };
+
+    color_rgb_to_hsv(&rgb, &hsv);
+
+    m_hsv_tmp_values->hue        =  hsv.hue * 100;
+    m_hsv_tmp_values->saturation =  hsv.saturation * 100;
+    m_hsv_tmp_values->value      =  hsv.value * 100;
+
+    m_rgb_seq_values.channel_0 = rgb.red;
+    m_rgb_seq_values.channel_1 = rgb.green;
+    m_rgb_seq_values.channel_2 = rgb.blue;
+    m_rgb_seq_values.channel_3 = 0;
+}
+
+
 void pwm_init(pwm_hsv_t * hsv, blinky_mode_t * mode, bool * change_value)
 {
     m_mode = mode;
