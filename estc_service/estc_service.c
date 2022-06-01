@@ -201,10 +201,6 @@ static ret_code_t estc_ble_char_value_update(uint16_t conn_handle, uint16_t valu
 
         error_code = sd_ble_gatts_hvx(conn_handle, &hvx_params);
     }
-    else
-    {
-        error_code = NRF_ERROR_INVALID_STATE;
-    }
 
     return error_code;
 }

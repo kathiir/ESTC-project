@@ -151,7 +151,8 @@ static void notify_char_timeout_handler(void *p_context)
     m_notify_char_value++;
 
     error_code = estc_ble_char_notify_value_update(&m_estc_service, m_notify_char_value);
-    APP_ERROR_CHECK(error_code);
+
+    (void) error_code;
 }
 
 static void identify_char_timeout_handler(void *p_context)
@@ -161,7 +162,8 @@ static void identify_char_timeout_handler(void *p_context)
     m_identify_char_value++;
 
     error_code = estc_ble_char_indicate_value_update(&m_estc_service, m_identify_char_value);
-    APP_ERROR_CHECK(error_code);
+
+    (void) error_code;
 }
 
 /**@brief Function for the Timer initialization.
@@ -395,8 +397,8 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             NRF_LOG_INFO("Timer: %d", err_code);
 
             APP_ERROR_CHECK(err_code);
-            // err_code = app_timer_start(m_identify_char_timer_id, IDENTIFY_CHAR_TIMEOUT, NULL);
-            // APP_ERROR_CHECK(err_code);
+            err_code = app_timer_start(m_identify_char_timer_id, IDENTIFY_CHAR_TIMEOUT, NULL);
+            APP_ERROR_CHECK(err_code);
 
             break;
 
