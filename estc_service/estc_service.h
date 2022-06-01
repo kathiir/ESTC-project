@@ -45,11 +45,26 @@
 // #define ESTC_SERVICE_UUID 0xabcd
 #define ESTC_SERVICE_UUID 0x1723
 
+// TODO: 3. Pick a characteristic UUID and define it:
+// #define ESTC_GATT_CHAR_1_UUID 0x0001
+#define ESTC_GATT_CHAR_1_UUID        0x1313
+#define ESTC_NOTIFY_CHAR_UUID        0x1314
+#define ESTC_INDICATION_CHAR_UUID    0x1315
+
+
 typedef struct
 {
     uint16_t service_handle;
+    uint16_t connection_handle;
+
+    ble_gatts_char_handles_t char_handle;
+    // TODO: 6.3. Add handles for characterstic (type: ble_gatts_char_handles_t)
+    ble_gatts_char_handles_t notify_handle;
+    ble_gatts_char_handles_t indication_handle;
 } ble_estc_service_t;
 
 ret_code_t estc_ble_service_init(ble_estc_service_t *service);
+ret_code_t estc_ble_char_notify_value_update(ble_estc_service_t *service, uint8_t value);
+ret_code_t estc_ble_char_indicate_value_update(ble_estc_service_t *service, uint8_t value);
 
 #endif /* ESTC_SERVICE_H__ */
