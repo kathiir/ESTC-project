@@ -314,6 +314,12 @@ static void conn_params_init(void)
  */
 static void application_timers_start(void)
 {
+    ret_code_t err_code;
+
+    err_code = app_timer_start(m_notify_char_timer_id, NOTIFY_CHAR_TIMEOUT, NULL);
+    APP_ERROR_CHECK(err_code);
+    err_code = app_timer_start(m_identify_char_timer_id, IDENTIFY_CHAR_TIMEOUT, NULL);
+    APP_ERROR_CHECK(err_code);
 }
 
 
@@ -393,13 +399,6 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             err_code = nrf_ble_qwr_conn_handle_assign(&m_qwr, m_conn_handle);
             APP_ERROR_CHECK(err_code);
 
-            err_code = app_timer_start(m_notify_char_timer_id, NOTIFY_CHAR_TIMEOUT, NULL);
-            NRF_LOG_INFO("Timer: %d", err_code);
-
-            APP_ERROR_CHECK(err_code);
-            err_code = app_timer_start(m_identify_char_timer_id, IDENTIFY_CHAR_TIMEOUT, NULL);
-            APP_ERROR_CHECK(err_code);
-
             break;
 
         case BLE_GAP_EVT_PHY_UPDATE_REQUEST:
@@ -420,9 +419,6 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             err_code = sd_ble_gap_disconnect(p_ble_evt->evt.gattc_evt.conn_handle,
                                              BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
             APP_ERROR_CHECK(err_code);
-
-            app_timer_stop(m_notify_char_timer_id);
-            app_timer_stop(m_identify_char_timer_id);
 
             break;
 
@@ -612,6 +608,9 @@ int main(void)
     {
         idle_state_handle();
     }
+
+    app_timer_stop(m_notify_char_timer_id);
+    app_timer_stop(m_identify_char_timer_id);
 }
 
 
