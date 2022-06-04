@@ -74,6 +74,8 @@
 #include "nrf_ble_gatt.h"
 #include "nrf_ble_qwr.h"
 #include "nrf_pwr_mgmt.h"
+#include "nrf_fstorage.h"
+#include "nrf_fstorage_sd.h"
 
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
@@ -81,6 +83,8 @@
 #include "nrf_log_backend_usb.h"
 
 #include "estc_service.h"
+#include "color_module.h"
+#include "gpio_pwm.h"
 
 #define DEVICE_NAME                     "ESTC-SVC"                              /**< Name of device. Will be included in the advertising data. */
 #define MANUFACTURER_NAME               "NordicSemiconductor"                   /**< Manufacturer. Will be passed to Device Information Service. */
@@ -104,12 +108,12 @@
 #define NOTIFY_CHAR_TIMEOUT     200
 #define IDENTIFY_CHAR_TIMEOUT   400
 
+#define FSTORAGE_ADDRESS        0xde000
+#define FSTORAGE_ADDRESS_END    FSTORAGE_ADDRESS + 0xfff
+
 NRF_BLE_GATT_DEF(m_gatt);                                                       /**< GATT module instance. */
 NRF_BLE_QWR_DEF(m_qwr);                                                         /**< Context for the Queued Write module.*/
 BLE_ADVERTISING_DEF(m_advertising);                                             /**< Advertising module instance. */
-
-APP_TIMER_DEF(m_notify_char_timer_id);
-APP_TIMER_DEF(m_identify_char_timer_id);
 
 static uint16_t m_conn_handle = BLE_CONN_HANDLE_INVALID;                        /**< Handle of the current connection. */
 
@@ -122,11 +126,88 @@ static ble_uuid_t m_adv_uuids[] =                                               
 
 ble_estc_service_t m_estc_service; /**< ESTC example BLE service */
 
-static uint8_t m_notify_char_value = 0;
-static uint8_t m_identify_char_value = 0;
+static color_rgb_t m_color_value = {255, 255, 255};
+static uint32_t color_flash;
+
+static void fstorage_evt_handler(nrf_fstorage_evt_t * p_evt);
+
+NRF_FSTORAGE_DEF(nrf_fstorage_t fstorage) =
+{
+    /* Set a handler for fstorage events. */
+    .evt_handler = fstorage_evt_handler,
+
+    /* These below are the boundaries of the flash space assigned to this instance of fstorage.
+     * You must set these manually, even at runtime, before nrf_fstorage_init() is called.
+     * The function nrf5_flash_end_addr_get() can be used to retrieve the last address on the
+     * last page of flash available to write data. */
+    .start_addr = FSTORAGE_ADDRESS,
+    .end_addr   = FSTORAGE_ADDRESS_END,
+};
 
 static void advertising_start(void);
 
+void update_color(const ble_evt_t * evt)
+{
+    const ble_gatts_evt_write_t * evt_write = &evt->evt.gatts_evt.params.write;
+    int rc;
+
+    if (evt_write->handle == m_estc_service.color_write_handle.value_handle)
+    {
+        m_color_value = *((color_rgb_t *) evt_write->data);
+
+        /* It's freaking magic. Don't touch.
+            May the Pasta be with you
+         */
+     	if (!nrf_fstorage_is_busy(&fstorage))
+        {
+            rc = nrf_fstorage_erase(&fstorage, FSTORAGE_ADDRESS, 1, NULL);
+            NRF_LOG_INFO("--> nrf_fstorage_erase %d.",
+                         rc);
+            APP_ERROR_CHECK(rc);
+
+            color_flash = 0;
+
+            memcpy(&color_flash, &m_color_value, sizeof(m_color_value));
+
+            rc = nrf_fstorage_write(&fstorage, FSTORAGE_ADDRESS, &color_flash, 4, NULL);
+            NRF_LOG_INFO("--> nrf_fstorage_write %d.",
+                         rc);
+            APP_ERROR_CHECK(rc);
+        }
+
+
+        pwm_set_rgb_color(&m_color_value);
+
+        estc_ble_char_color_notify_update(&m_estc_service, m_color_value);
+    }
+}
+
+static void fstorage_evt_handler(nrf_fstorage_evt_t * p_evt)
+{
+    if (p_evt->result != NRF_SUCCESS)
+    {
+        NRF_LOG_INFO("--> Event received: ERROR while executing an fstorage operation.");
+        return;
+    }
+
+    switch (p_evt->id)
+    {
+        case NRF_FSTORAGE_EVT_WRITE_RESULT:
+        {
+            NRF_LOG_INFO("--> Event received: wrote %d bytes at address 0x%x.",
+                         p_evt->len, p_evt->addr);
+        } break;
+
+        case NRF_FSTORAGE_EVT_ERASE_RESULT:
+        {
+            NRF_LOG_INFO("--> Event received: erased %d page from address 0x%x.",
+                         p_evt->len, p_evt->addr);
+        } break;
+
+        default:
+            break;
+    }
+}
 
 /**@brief Callback function for asserts in the SoftDevice.
  *
@@ -144,28 +225,6 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
     app_error_handler(DEAD_BEEF, line_num, p_file_name);
 }
 
-static void notify_char_timeout_handler(void *p_context)
-{
-    ret_code_t error_code;
-
-    m_notify_char_value++;
-
-    error_code = estc_ble_char_notify_value_update(&m_estc_service, m_notify_char_value);
-
-    (void) error_code;
-}
-
-static void identify_char_timeout_handler(void *p_context)
-{
-    ret_code_t error_code;
-
-    m_identify_char_value++;
-
-    error_code = estc_ble_char_indicate_value_update(&m_estc_service, m_identify_char_value);
-
-    (void) error_code;
-}
-
 /**@brief Function for the Timer initialization.
  *
  * @details Initializes the timer module. This creates and starts application timers.
@@ -174,11 +233,6 @@ static void timers_init(void)
 {
     // Initialize timer module.
     ret_code_t err_code = app_timer_init();
-    APP_ERROR_CHECK(err_code);
-
-    err_code = app_timer_create(&m_notify_char_timer_id, APP_TIMER_MODE_REPEATED, notify_char_timeout_handler);
-    APP_ERROR_CHECK(err_code);
-    err_code = app_timer_create(&m_identify_char_timer_id, APP_TIMER_MODE_REPEATED, identify_char_timeout_handler);
     APP_ERROR_CHECK(err_code);
 }
 
@@ -314,12 +368,6 @@ static void conn_params_init(void)
  */
 static void application_timers_start(void)
 {
-    ret_code_t err_code;
-
-    err_code = app_timer_start(m_notify_char_timer_id, NOTIFY_CHAR_TIMEOUT, NULL);
-    APP_ERROR_CHECK(err_code);
-    err_code = app_timer_start(m_identify_char_timer_id, IDENTIFY_CHAR_TIMEOUT, NULL);
-    APP_ERROR_CHECK(err_code);
 }
 
 
@@ -428,6 +476,10 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             err_code = sd_ble_gap_disconnect(p_ble_evt->evt.gatts_evt.conn_handle,
                                              BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
             APP_ERROR_CHECK(err_code);
+            break;
+
+        case BLE_GATTS_EVT_WRITE:
+            update_color(p_ble_evt);
             break;
 
         default:
@@ -580,6 +632,17 @@ static void advertising_start(void)
     APP_ERROR_CHECK(err_code);
 }
 
+static void init_flash(void)
+{
+    int ret = nrf_fstorage_init(&fstorage, &nrf_fstorage_sd, NULL);
+    APP_ERROR_CHECK(ret);
+
+    ret = nrf_fstorage_read(&fstorage, FSTORAGE_ADDRESS, &color_flash, sizeof(color_flash));
+    memcpy(&m_color_value, &color_flash, sizeof(m_color_value));
+    NRF_LOG_DEBUG("nrf_fstorage_read %d", ret);
+
+    APP_ERROR_CHECK(ret);
+}
 
 /**@brief Function for application main entry.
  */
@@ -596,10 +659,13 @@ int main(void)
     services_init();
     advertising_init();
     conn_params_init();
+    init_flash();
 
     // Start execution.
     NRF_LOG_INFO("ESTC GATT service example started");
     application_timers_start();
+
+    pwm_init(&m_color_value);
 
     advertising_start();
 
@@ -608,9 +674,6 @@ int main(void)
     {
         idle_state_handle();
     }
-
-    app_timer_stop(m_notify_char_timer_id);
-    app_timer_stop(m_identify_char_timer_id);
 }
 
 

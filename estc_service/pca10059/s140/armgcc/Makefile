@@ -93,6 +93,9 @@ SRC_FILES += \
   $(SDK_ROOT)/components/ble/common/ble_conn_params.c \
   $(SDK_ROOT)/components/ble/common/ble_advdata.c \
   $(SDK_ROOT)/components/ble/ble_advertising/ble_advertising.c \
+  $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_pwm.c \
+  $(PROJ_DIR)/gpio_module/gpio_module.c \
+  $(PROJ_DIR)/gpio_module/gpio_pwm.c \
   $(PROJ_DIR)/estc_service.c \
   $(PROJ_DIR)/main.c \
 
@@ -228,6 +231,10 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/ble/ble_dtm \
   $(SDK_ROOT)/components/ble/ble_advertising \
   $(SDK_ROOT)/components \
+  $(PROJ_DIR)/color_module \
+  $(PROJ_DIR)/gpio_module \
+  $(SDK_ROOT)/components/libraries/bsp \
+  $(SDK_ROOT)/modules/nrfx/drivers/include \
 
 # Libraries common to all targets
 LIB_FILES += \
